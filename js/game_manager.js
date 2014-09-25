@@ -5,8 +5,10 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.actuator       = new Actuator;
 
   this.startTiles     = 2;
+  this.autoplay = false;
 
   this.inputManager.on("move", this.move.bind(this));
+  this.inputManager.on("moveAi", this.moveAi.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
@@ -126,9 +128,47 @@ GameManager.prototype.moveTile = function (tile, cell) {
   tile.updatePosition(cell);
 };
 
+getGoodRep = function(cells) {
+	var res = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],[0, 0, 0, 0]];
+	for(j=0; j < 4; j++) {
+		for (i=0; i < 4; i++) {
+	//		console.log(i + ', ' + j);
+			res[i][j] = cells[j][i] != null ? cells[j][i].value : 0;
+		}
+	}
+	return res;
+}
+
+GameManager.prototype.moveAi = function (data) {
+	var cond;
+	var newData = null;
+	if (data.ap) { //toggle autoplay button
+		this.autoplay = !this.autoplay;
+	}	
+	var cs = getGoodRep(this.grid.cells);
+	var dir = Haste.getM(getGoodRep(this.grid.cells));
+	if (dir >= 0) {
+		this.move(dir);
+		if (this.autoplay) {
+			newData = {cont:true};
+		} else if ((typeof data.steps != 'undefined') && (data.steps > 1)) {
+			newData = {steps:data.steps--}
+
+		}
+		if (newData != null) {
+			var that = this;
+			setTimeout(function() { that.moveAi(newData)}, 200);
+		}
+	}
+}
+
+
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
-  // 0: up, 1: right, 2: down, 3: left
+  // 0: up, 1: right, 2: down, 3: left, 13: AI
+  //
+  // 
+
   var self = this;
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over

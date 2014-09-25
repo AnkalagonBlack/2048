@@ -43,6 +43,8 @@ KeyboardInputManager.prototype.listen = function () {
     76: 1, // Vim right
     74: 2, // Vim down
     72: 3, // Vim left
+    84: 13, //AI
+    85: 14, //AI
     87: 0, // W
     68: 1, // D
     83: 2, // S
@@ -58,7 +60,15 @@ KeyboardInputManager.prototype.listen = function () {
     if (!modifiers) {
       if (mapped !== undefined) {
         event.preventDefault();
-        self.emit("move", mapped);
+	if (mapped == 13) {
+		self.emit("moveAi", {steps:1});
+	} else {
+		if (mapped == 14) {
+			self.emit("moveAi", {ap:true});
+		} else {
+        		self.emit("move", mapped);
+		}
+	}
       }
     }
 
